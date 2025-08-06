@@ -266,6 +266,8 @@ pub struct PeerConfig {
     #[serde(flatten)]
     pub lock_after_session_end: LockAfterSessionEnd,
     #[serde(flatten)]
+    pub terminal_persistent: TerminalPersistent,
+    #[serde(flatten)]
     pub privacy_mode: PrivacyMode,
     #[serde(flatten)]
     pub allow_swap_key: AllowSwapKey,
@@ -357,6 +359,7 @@ impl Default for PeerConfig {
             custom_image_quality: Self::default_custom_image_quality(),
             show_remote_cursor: Default::default(),
             lock_after_session_end: Default::default(),
+            terminal_persistent: Default::default(),
             privacy_mode: Default::default(),
             allow_swap_key: Default::default(),
             port_forwards: Default::default(),
@@ -952,7 +955,9 @@ impl Config {
     }
 
     pub fn no_register_device() -> bool {
-        BUILTIN_SETTINGS.read().unwrap()
+        BUILTIN_SETTINGS
+            .read()
+            .unwrap()
             .get(keys::OPTION_REGISTER_DEVICE)
             .map(|v| v == "N")
             .unwrap_or(false)
@@ -1647,6 +1652,12 @@ serde_field_bool!(
     "lock_after_session_end",
     default_lock_after_session_end,
     "LockAfterSessionEnd::default_lock_after_session_end"
+);
+serde_field_bool!(
+    TerminalPersistent,
+    "terminal-persistent",
+    default_terminal_persistent,
+    "TerminalPersistent::default_terminal_persistent"
 );
 serde_field_bool!(
     PrivacyMode,
@@ -2430,6 +2441,8 @@ pub mod keys {
     pub const OPTION_ENABLE_CLIPBOARD: &str = "enable-clipboard";
     pub const OPTION_ENABLE_FILE_TRANSFER: &str = "enable-file-transfer";
     pub const OPTION_ENABLE_CAMERA: &str = "enable-camera";
+    pub const OPTION_ENABLE_TERMINAL: &str = "enable-terminal";
+    pub const OPTION_TERMINAL_PERSISTENT: &str = "terminal-persistent";
     pub const OPTION_ENABLE_AUDIO: &str = "enable-audio";
     pub const OPTION_ENABLE_TUNNEL: &str = "enable-tunnel";
     pub const OPTION_ENABLE_REMOTE_RESTART: &str = "enable-remote-restart";
@@ -2454,6 +2467,7 @@ pub mod keys {
     pub const OPTION_ENABLE_HWCODEC: &str = "enable-hwcodec";
     pub const OPTION_APPROVE_MODE: &str = "approve-mode";
     pub const OPTION_VERIFICATION_METHOD: &str = "verification-method";
+    pub const OPTION_TEMPORARY_PASSWORD_LENGTH: &str = "temporary-password-length";
     pub const OPTION_CUSTOM_RENDEZVOUS_SERVER: &str = "custom-rendezvous-server";
     pub const OPTION_API_SERVER: &str = "api-server";
     pub const OPTION_KEY: &str = "key";
@@ -2481,7 +2495,7 @@ pub mod keys {
     pub const OPTION_HIDE_PROXY_SETTINGS: &str = "hide-proxy-settings";
     pub const OPTION_HIDE_REMOTE_PRINTER_SETTINGS: &str = "hide-remote-printer-settings";
     pub const OPTION_HIDE_WEBSOCKET_SETTINGS: &str = "hide-websocket-settings";
-    
+
     // Connection punch-through options
     pub const OPTION_ENABLE_UDP_PUNCH: &str = "enable-udp-punch";
     pub const OPTION_ENABLE_IPV6_PUNCH: &str = "enable-ipv6-punch";
@@ -2552,6 +2566,7 @@ pub mod keys {
         OPTION_DISPLAYS_AS_INDIVIDUAL_WINDOWS,
         OPTION_USE_ALL_MY_DISPLAYS_FOR_THE_REMOTE_SESSION,
         OPTION_VIEW_STYLE,
+        OPTION_TERMINAL_PERSISTENT,
         OPTION_SCROLL_STYLE,
         OPTION_IMAGE_QUALITY,
         OPTION_CUSTOM_IMAGE_QUALITY,
@@ -2602,6 +2617,7 @@ pub mod keys {
         OPTION_ENABLE_CLIPBOARD,
         OPTION_ENABLE_FILE_TRANSFER,
         OPTION_ENABLE_CAMERA,
+        OPTION_ENABLE_TERMINAL,
         OPTION_ENABLE_REMOTE_PRINTER,
         OPTION_ENABLE_AUDIO,
         OPTION_ENABLE_TUNNEL,
@@ -2625,6 +2641,7 @@ pub mod keys {
         OPTION_ENABLE_HWCODEC,
         OPTION_APPROVE_MODE,
         OPTION_VERIFICATION_METHOD,
+        OPTION_TEMPORARY_PASSWORD_LENGTH,
         OPTION_PROXY_URL,
         OPTION_PROXY_USERNAME,
         OPTION_PROXY_PASSWORD,
@@ -2666,7 +2683,6 @@ pub mod keys {
         OPTION_HIDE_POWERED_BY_ME,
     ];
 }
-
 
 pub fn common_load<
     T: serde::Serialize + serde::de::DeserializeOwned + Default + std::fmt::Debug,
